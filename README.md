@@ -16,6 +16,41 @@ A Python-based light show generator for a unique LED panel setup consisting of f
 
 ## Mathematical Concepts Used
 
+### Mathematical Concepts
+
+The light show utilizes several mathematical concepts to create dynamic visual patterns:
+
+1. **Polar Coordinates and Trigonometry**
+   - Uses `arctan2(y, x)` for angle calculation in spiral patterns
+   - Converts between Cartesian (x,y) and polar (r,θ) coordinates
+   - Applies sinusoidal waves with phase shifts for smooth animations
+
+2. **Linear Interpolation and Scaling**
+   - Linear spreading factor: `1.0 + (distance / max_distance) * scale`
+   - LED size interpolation: `base_size * (min_factor + (1 - min_factor) * distance_ratio)`
+   - Boundary growth: `size * (1 + growth_factor * distance_ratio)`
+
+3. **Vector Mathematics**
+   - Distance calculations using Manhattan distance: `max(|dx|, |dy|)`
+   - Normalized vector components for directional effects
+   - Vector scaling for position adjustments
+
+4. **Wave Functions and Interference**
+   - Ripple pattern: `sin(2π * frequency * r - speed * t)`
+   - Spiral pattern: `sin(arms * θ + speed * t - 2π * r)`
+   - Wave pattern: `sin(2π * frequency * (x + y) + t)`
+
+5. **Grid-based Transformations**
+   - Panel coordinate mapping between display grid and physical space
+   - Uniform grid spacing with variable density
+   - Linear transformation matrices for coordinate systems
+
+6. **Random Number Generation**
+   - Time-seeded random generation for sparkle effects
+   - Probability-based intensity distribution
+   - Controlled density through threshold functions
+
+These mathematical principles work together to create fluid, organic-looking animations while maintaining precise LED positioning and timing.
 
 ## Installation & Running
 

@@ -60,31 +60,35 @@ class LEDShow:
         
         self.renderer.set_display(self.renderer.display)
     
-    def run_demo(self, duration: float = 30, fps: float = 30):
-        """Run a demo of different patterns"""
+    def run_demo(self, fps: float = 60):
+        """Run a continuous demo of different patterns"""
         patterns = [
-            (self.ripple_pattern, {'frequency': 2, 'speed': 3}),
-            (self.spiral_pattern, {'arms': 2, 'speed': 2}),
-            (self.wave_pattern, {'frequency': 1}),
-            (self.sparkle_pattern, {'density': 0.1}),
+            (self.ripple_pattern, {'frequency': 3, 'speed': 4}),
+            (self.spiral_pattern, {'arms': 2, 'speed': 3}),
+            (self.wave_pattern, {'frequency': 1.5}),
+            (self.sparkle_pattern, {'density': 0.15}),
         ]
         
         clock = pygame.time.Clock()
         start_time = time.time()
         
-        while (time.time() - start_time) < duration:
-            if not self.renderer.handle_events():
-                break
-            
-            t = time.time() - start_time
-            pattern_idx = int(t / 5) % len(patterns)
-            pattern_func, kwargs = patterns[pattern_idx]
-            
-            self.apply_pattern(pattern_func, t, **kwargs)
-            self.renderer.render()
-            clock.tick(fps)
+        try:
+            while True:
+                if not self.renderer.handle_events():
+                    break
+                
+                t = time.time() - start_time
+                pattern_idx = int(t / 4) % len(patterns)  # Change pattern every 4 seconds
+                pattern_func, kwargs = patterns[pattern_idx]
+                
+                self.apply_pattern(pattern_func, t, **kwargs)
+                self.renderer.render()
+                clock.tick(fps)
         
-        self.renderer.cleanup()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.renderer.cleanup()
 
 if __name__ == "__main__":
     show = LEDShow()

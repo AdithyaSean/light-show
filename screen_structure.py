@@ -8,7 +8,7 @@ class LEDScreenStructure:
         self.base_led_size = 16
         self.display_width = panel_size * 2    # Total width (16)
         self.display_height = panel_size * 3   # Total height (24)
-        self.center = window_size // 2  # Calculate center once
+        self.center = window_size // 2
         
         # Initialize the structure
         self.panel_positions = self._init_panel_positions()
@@ -41,47 +41,40 @@ class LEDScreenStructure:
         return masks
     
     def _calculate_led_positions(self) -> List[Tuple[float, float, float, float]]:
-        """Calculate LED positions and sizes with linear spreading from center"""
+        """Calculate LED positions with linear spreading from center"""
         led_info = []
         base_panel_size = self.panel_size * self.base_led_size
-
-        # Define weight factors for horizontal and vertical spacing
-        weight_x = 1.5
-        weight_y = 1.5
-
+        
+        # Spacing configuration - reduced for higher density
+        min_spacing = self.base_led_size * 1.1  # Reduced from 1.2
+        panel_gap = self.base_led_size * 1.8    # Reduced from 2.0
+        
         for panel, (px, py) in enumerate(self.panel_positions):
             for row in range(self.panel_size):
                 for col in range(self.panel_size):
-                    # Calculate base grid position within the panel square
-                    base_x = col * self.base_led_size - (base_panel_size // 2)
-                    base_y = row * self.base_led_size - (base_panel_size // 2)
+                    # Calculate base position relative to panel center
+                    base_x = col * min_spacing - (base_panel_size // 2)
+                    base_y = row * min_spacing - (base_panel_size // 2)
                     
-                    # Adjust position based on panel position with minimal gap
-                    x_offset = px * (base_panel_size * 0.5 + self.base_led_size * 1.5)
-                    y_offset = py * (base_panel_size * 0.5 + self.base_led_size * 1.5)
-                    x = self.center + base_x + x_offset
-                    y = self.center + base_y + y_offset
+                    # Add panel offset with proper spacing
+                    panel_offset = base_panel_size // 2 + panel_gap
+                    x = self.center + base_x + (px * panel_offset)
+                    y = self.center + base_y + (py * panel_offset)
                     
-                    # Calculate normalized distance from center (0 to 1)
+                    # Calculate linear spreading factor based on distance from center
                     dx = x - self.center
                     dy = y - self.center
-                    max_distance = self.window_size / 3  # Maximum expected distance
-
-                    # Apply weight factors based on desired direction
-                    r = max(abs(dx * weight_x), abs(dy * weight_y)) / max_distance
+                    max_dist = max(abs(dx), abs(dy))
+                    spread_factor = 1.0 + (max_dist / (self.window_size / 4)) * 2.5  # Reduced from 3.0
                     
-                    # Linear spreading factor
-                    spread = 1 + r * 4.0  # Linear spreading
+                    # Apply spreading
+                    final_x = self.center + dx * spread_factor
+                    final_y = self.center + dy * spread_factor
                     
-                    # Apply linear spreading
-                    final_x = self.center + dx * spread
-                    final_y = self.center + dy * spread
-                    
-                    # LED size decreases linearly with distance
-                    size = self.base_led_size * (0.9 - 0.1 * r)
-                    
-                    # Boundary grows linearly with distance
-                    boundary_size = size * (1.1 + 0.4 * r)
+                    # Calculate LED size (smaller at edges)
+                    dist_ratio = max_dist / (self.window_size / 2)
+                    size = self.base_led_size * (0.95 - 0.1 * dist_ratio)  # Increased base size factor
+                    boundary_size = size * (1.08 + 0.25 * dist_ratio)  # Reduced boundary growth
                     
                     led_info.append((final_x, final_y, size, boundary_size))
         

@@ -17,11 +17,13 @@ class LEDScreenStructure:
     
     def _init_panel_positions(self) -> List[Tuple[int, int]]:
         """Initialize the panel positions in + shape"""
+        # Increase panel separation to prevent overlap
+        panel_scale = 1.5  # Increased from 1.2 to create more space between panels
         return [
-            (0, -1),   # Top panel
-            (-1, 0),   # Left panel
-            (1, 0),    # Right panel
-            (0, 1)     # Bottom panel
+            (0, -panel_scale),    # Top panel
+            (-panel_scale, 0),    # Left panel
+            (panel_scale, 0),     # Right panel
+            (0, panel_scale)      # Bottom panel
         ]
     
     def _create_panel_masks(self) -> List[np.ndarray]:
@@ -41,42 +43,42 @@ class LEDScreenStructure:
         return masks
     
     def _calculate_led_positions(self) -> List[Tuple[float, float, float, float]]:
-        """Calculate LED positions with linear spreading from center"""
+        """Calculate LED positions with proper spacing to prevent overlap"""
         led_info = []
-        base_panel_size = self.panel_size * self.base_led_size
         
-        # Spacing configuration - reduced for higher density
-        min_spacing = self.base_led_size * 1.1  # Reduced from 1.2
-        panel_gap = self.base_led_size * 1.8    # Reduced from 2.0
+        # Base configuration with increased spacing
+        base_led_spacing = self.base_led_size * 1.4  # Increased from 1.2 for more space between LEDs
+        panel_size_px = base_led_spacing * (self.panel_size - 1)  # Total panel size in pixels
+        
+        # Panel separation with increased gap
+        panel_gap = self.base_led_size * 2.5  # Increased from 2.2 for larger gap between panels
         
         for panel, (px, py) in enumerate(self.panel_positions):
             for row in range(self.panel_size):
                 for col in range(self.panel_size):
-                    # Calculate base position relative to panel center
-                    base_x = col * min_spacing - (base_panel_size // 2)
-                    base_y = row * min_spacing - (base_panel_size // 2)
+                    # Calculate base position within panel
+                    rel_x = col * base_led_spacing - panel_size_px / 2
+                    rel_y = row * base_led_spacing - panel_size_px / 2
                     
-                    # Add panel offset with proper spacing
-                    panel_offset = base_panel_size // 2 + panel_gap
-                    x = self.center + base_x + (px * panel_offset)
-                    y = self.center + base_y + (py * panel_offset)
+                    # Add panel offset with improved spacing
+                    panel_offset = panel_size_px / 2 + panel_gap
+                    x = self.center + rel_x + (px * panel_offset)
+                    y = self.center + rel_y + (py * panel_offset)
                     
-                    # Calculate linear spreading factor based on distance from center
+                    # Calculate distance from center for size adjustment
                     dx = x - self.center
                     dy = y - self.center
-                    max_dist = max(abs(dx), abs(dy))
-                    spread_factor = 1.0 + (max_dist / (self.window_size / 4)) * 2.5  # Reduced from 3.0
+                    dist = np.sqrt(dx*dx + dy*dy)
+                    max_dist = self.window_size / 3
+                    dist_ratio = min(dist / max_dist, 1.0)
                     
-                    # Apply spreading
-                    final_x = self.center + dx * spread_factor
-                    final_y = self.center + dy * spread_factor
+                    # Improved size calculations to prevent overlap
+                    min_size_factor = 0.7  # Minimum size relative to base size
+                    base_size = self.base_led_size * (min_size_factor + (1 - min_size_factor) * (1.0 - 0.3 * dist_ratio))
+                    size = base_size * 0.7  # Reduced from 0.8 to prevent LED overlap
+                    boundary_size = base_size * 0.9  # Reduced boundary size to create clear separation
                     
-                    # Calculate LED size (smaller at edges)
-                    dist_ratio = max_dist / (self.window_size / 2)
-                    size = self.base_led_size * (0.95 - 0.1 * dist_ratio)  # Increased base size factor
-                    boundary_size = size * (1.08 + 0.25 * dist_ratio)  # Reduced boundary growth
-                    
-                    led_info.append((final_x, final_y, size, boundary_size))
+                    led_info.append((x, y, size, boundary_size))
         
         return led_info
     

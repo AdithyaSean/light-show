@@ -21,7 +21,7 @@ A Python-based light show generator for a unique LED panel setup consisting of f
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/AdithyaSean/light-show
    cd light-show
    ```
 
@@ -31,6 +31,12 @@ A Python-based light show generator for a unique LED panel setup consisting of f
    chmod +x run.sh
    ./run.sh
    ```
+
+### One-Liner Setup
+
+```bash
+git clone https://github.com/AdithyaSean/light-show.git && cd light-show && chmod +x run.sh && ./run.sh
+```
 
 3. The program will automatically:
    - Create a virtual environment
